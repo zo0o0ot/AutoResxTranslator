@@ -12,3 +12,7 @@ Resx Translation
 Resx translation is in progress
 ------
 ![ResX-Translation](/Wiki/Images/resx-translating.png?raw=true)
+
+New Gibberish option checkboxes
+------
+![ResX-GibberishTranslation](/Wiki/Images/gibberishTranslator.png?raw=true)
