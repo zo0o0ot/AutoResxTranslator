@@ -16,3 +16,5 @@ Resx translation is in progress
 New Gibberish option checkboxes
 ------
 ![ResX-GibberishTranslation](/Wiki/Images/gibberishTranslator.png?raw=true)
++ Checking the "total gibberish" checkbox means that a nonsense string of the same length as the original value is returned instead of the language that you checked.
++ Checking the "leftover gibberish" option will default to the Google Translation API, but if that fails, it will add a gibberish string of the same length as the original value.  The errors in translating will still be logged if you want to see what failed.
