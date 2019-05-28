@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -303,26 +303,38 @@ namespace AutoResxTranslator
 						trycount = 0;
 						do
 						{
-							try
-							{
-								success = GTranslateService.Translate(orgText, sourceLng, destLng, textTranslatorUrlKey, out translated);
-							}
-							catch (Exception)
-							{
-								success = false;
-							}
-							trycount++;
+                            if (gibberish.Checked)
+                            {
+                                translated = getGibberish(orgText.ToCharArray().Length);
+
+                                success = true;
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    success = GTranslateService.Translate(orgText, sourceLng, destLng, textTranslatorUrlKey, out translated);
+                                }
+                                catch (Exception)
+                                {
+                                    success = false;
+                                }
+                                trycount++;
+                            }
+							
 
 							if (!success)
 							{
-								var key = ResxTranslator.GetDataKeyName(node);
-								status = "Translating language: " + destLng + " , key '" + key + "' failed to translate in try " + trycount;
-								progress.BeginInvoke(max, pos, status, null, null);
+                                var key = ResxTranslator.GetDataKeyName(node);
+                                status = "Translating language: " + destLng + " , key '" + key + "' failed to translate in try " + trycount;
+                                progress.BeginInvoke(max, pos, status, null, null);
 							}
 
 						} while (success == false && trycount <= 2);
 
-						if (success)
+                        
+
+                        if (success)
 						{
 							valueNode.InnerText = translated;
 						}
@@ -338,8 +350,14 @@ namespace AutoResxTranslator
 							catch
 							{
 							}
-						}
-					}
+                            if (leftoverGibberish.Checked)
+                            {
+                                translated = getGibberish(orgText.ToCharArray().Length);
+                                valueNode.InnerText = translated;
+                            }
+
+                        }
+                    }
 				}
 				finally
 				{
@@ -714,5 +732,23 @@ namespace AutoResxTranslator
 					imgElemt.SetAttribute("src", "");
 				}
 		}
-	}
+
+        private string getGibberish(int string_length)
+        {
+            string translated = "";
+            //courtesy of stack overflow: https://stackoverflow.com/a/1344365/446746
+            using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+            {
+                var bit_count = (string_length * 6);
+                var byte_count = ((bit_count + 7) / 8); // rounded up
+                var bytes = new byte[byte_count];
+                rng.GetBytes(bytes);
+                string gibberish = Convert.ToBase64String(bytes);
+                // convert some of the characters to spaces so that the strings aren't too long.
+                translated = gibberish.Replace('/', ' ').Replace('+', ' ').Replace('=', ' ').Replace('0', ' ');
+            }
+            return translated;
+        }
+
+    }
 }
