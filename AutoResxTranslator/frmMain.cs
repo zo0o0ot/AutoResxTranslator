@@ -275,7 +275,7 @@ namespace AutoResxTranslator
 
 				pos = 0;
 				status = "Translating language: " + destLng;
-				progress.BeginInvoke(max, pos, status, null, null);
+				progress(max, pos, status);
 
 				try
 				{
@@ -284,8 +284,10 @@ namespace AutoResxTranslator
 					{
 						status = "Translating language: " + destLng;
 						pos += 1;
-						progress.BeginInvoke(max, pos, status, null, null);
+						progress(max, pos, status);
 
+                        if (!ResxTranslator.HasDisplayText(node))
+                            continue;
 
 						var valueNode = ResxTranslator.GetDataValueNode(node);
 						if (valueNode == null) continue;
@@ -327,7 +329,7 @@ namespace AutoResxTranslator
 							{
                                 var key = ResxTranslator.GetDataKeyName(node);
                                 status = "Translating language: " + destLng + " , key '" + key + "' failed to translate in try " + trycount;
-                                progress.BeginInvoke(max, pos, status, null, null);
+                                progress(max, pos, status);
 							}
 
 						} while (success == false && trycount <= 2);
@@ -376,7 +378,7 @@ namespace AutoResxTranslator
 			}
 
 
-			progress.BeginInvoke(max, pos, status, null, null);
+			progress(max, pos, status);
 
 		}
 
@@ -392,7 +394,7 @@ namespace AutoResxTranslator
 				barResxProgress.Minimum = 0;
 				barResxProgress.Maximum = max;
 				barResxProgress.Value = pos;
-				lblResxTranslateStatus.Text = string.Format("Processing {0:00}/{1:00}, ", max, pos) + status;
+				lblResxTranslateStatus.Text = string.Format("Processing {0:00}/{1:00}, ", pos, max) + status;
 			}
 		}
 
@@ -569,12 +571,16 @@ namespace AutoResxTranslator
 
 		private void btnSelectResxSource_Click(object sender, EventArgs e)
 		{
-			var dlg = new OpenFileDialog();
+            string priorSourceResx = txtSourceResx.Text;
+            var dlg = new OpenFileDialog();
 			dlg.Filter = "ResourceX File|*.resx";
 			if (dlg.ShowDialog() == DialogResult.OK)
 			{
 				txtSourceResx.Text = dlg.FileName;
-				if (txtOutputDir.Text.Length == 0)
+
+                //Default the output directory to the source file's directory.
+                //Do that if they haven't entered an output directory, or if the output directory is the default location for their previous source file.
+				if (txtOutputDir.Text.Length == 0 || txtOutputDir.Text == Path.GetDirectoryName(priorSourceResx))
 				{
 					txtOutputDir.Text = Path.GetDirectoryName(txtSourceResx.Text);
 				}
