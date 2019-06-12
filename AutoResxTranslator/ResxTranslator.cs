@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Xml;
 
 /* 
@@ -97,5 +97,37 @@ namespace AutoResxTranslator
 			return null;
 		}
 
+        public static bool HasDisplayText(XmlNode dataNode)
+        {
+            //If the data has a type attribute, then the value isn't a string.
+            string type = dataNode?.Attributes?.GetNamedItem("type")?.Value;
+            if (!string.IsNullOrEmpty(type))
+                return false;
+
+            //Sanity check. All data nodes should have a name.
+            string name = GetDataKeyName(dataNode);
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+            //Determine whether the name includes a period.
+            int dotIndex = name.LastIndexOf('.');
+
+            //If the name doesn't include a period, then it is likely a string resource and ought to be translated.
+            //WinForms control resource names should all have a period separating the control name from the property name.
+            //String resources aren't allowed to have a period.
+            if (dotIndex < 0)
+                return true;
+
+            //Use the property's name to determine whether it has display text.
+            //For now we'll assume every property named 'Text' is display text and all other properties are not.
+            //The ones I have encountered are Text, HeaderText, and ToolTipText.
+            //The TextAlign property shouldn't be translated, but that has a type attribute and thus doesn't reach this code path.
+            string propertyName = name.Substring(dotIndex + 1);
+            if (propertyName.IndexOf("Text", System.StringComparison.InvariantCultureIgnoreCase) >= 0)
+                return true;
+
+            //Assume it doesn't contain display text.
+            return false;
+        }
 	}
 }
